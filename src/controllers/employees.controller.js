@@ -28,13 +28,29 @@ export const createEmployee = async (req, res) => {
   })
 }
 
-export const updateEmployee = (req, res) => {
-  res.send('Actualizando empleados')
+export const updateEmployee = async (req, res) => {
+  const { id } = req.params
+  const { name, lastname, salary } = req.body
+  const [ result ] = await pool.query(`
+    update employee set 
+    name = "${name}", 
+    lastname = "${lastname}",
+    salary = ${salary}
+    where id = "${id}";
+  `)
+  if (!result.affectedRows) return res.status(404).json({
+    message: "Employee not found"
+  })
+  const [ rows ] = await pool.query(`select * from employee where id = "${id}"`)
+  res.json({
+    message: "Employee update",
+    data: rows[0]
+  })
 }
 
-export const deleteEmployee = (req, res) => {
+export const deleteEmployee = async (req, res) => {
   const { id } = req.params
-  const { result } = pool.query(`delete from employee where id = "${id}"`)
+  const [ result ] = await pool.query(`delete from employee where id = "${id}";`)
   if (!result.affectedRows) return res.status(404).json({
     message: "Employee not found"
   })
